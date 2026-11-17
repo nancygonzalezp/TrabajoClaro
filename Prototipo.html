@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrabajoClaro · Prototipo</title>
+<style>
+  :root{
+    --tinta:#222; --suave:#666; --borde:#bbb; --fondo:#f6f6f6; --blanco:#fff;
+    --principal:#2b2b2b; --pend:#fff3cd; --pend-borde:#c9a227;
+    --ok:#e3f1e5; --ok-borde:#4b8a55; --error:#b3261e; --radio:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;color:var(--tinta);background:#ddd;line-height:1.4}
+  .app{max-width:420px;min-height:100vh;margin:0 auto;background:var(--fondo);display:flex;flex-direction:column;position:relative}
+  header{background:var(--blanco);border-bottom:1px solid #ddd;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;z-index:5}
+  header .marca{font-weight:700;font-size:17px}
+  header select{font-size:14px;padding:5px 8px;border:1px solid #999;border-radius:16px;background:#fff}
+  .aviso{font-size:12.5px;color:var(--suave);font-style:italic;text-align:center;padding:6px 14px;background:#ececec}
+  main{flex:1;padding:14px 14px 150px}
+  h1{font-size:22px;margin-bottom:10px}
+  h2{font-size:19px;margin-bottom:8px}
+  .volver{background:none;border:none;font-size:15px;color:var(--tinta);cursor:pointer;padding:4px 0;margin-bottom:6px}
+  .filtros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{font-size:13.5px;border:1px solid #999;border-radius:16px;padding:6px 11px;background:#fff;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--principal);color:#fff;border-color:var(--principal)}
+  .tarjeta{background:var(--blanco);border:1.5px solid var(--borde);border-radius:var(--radio);padding:12px;margin-bottom:10px}
+  button.tarjeta{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+  button.tarjeta:hover{border-color:#777}
+  .titulo{font-weight:600;font-size:16px}
+  .sub{font-size:13.5px;color:var(--suave);margin-top:2px}
+  .etiquetas{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+  .et{font-size:12.5px;border:1px solid #999;background:#eee;border-radius:5px;padding:2px 7px}
+  .et.pend{background:var(--pend);border-color:var(--pend-borde)}
+  .et.ok{background:var(--ok);border-color:var(--ok-borde)}
+  .et.no{background:#f3e0de;border-color:#b98580}
+  .fila{display:flex;justify-content:space-between;gap:10px;font-size:14.5px;padding:5px 0;border-bottom:1px dashed #ddd}
+  .fila:last-child{border-bottom:none}
+  .monto{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .lbl{font-size:12px;color:var(--suave);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+  .saldo{text-align:center}
+  .saldo .cifra{font-size:30px;font-weight:700}
+  .pendiente{background:var(--pend);border:1.5px dashed var(--pend-borde)}
+  .tabs{display:flex;gap:3px;margin-bottom:10px;overflow-x:auto}
+  .tabs button{flex:1;font-size:13px;padding:7px 4px;border:none;border-radius:6px;background:#e4e4e4;cursor:pointer;white-space:nowrap}
+  .tabs button[aria-selected="true"]{background:var(--principal);color:#fff}
+  .acciones{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:linear-gradient(transparent,var(--fondo) 18%);padding:18px 14px 14px;display:flex;flex-direction:column;gap:8px;z-index:4}
+  .btn{display:block;width:100%;font:inherit;font-size:15.5px;font-weight:600;border-radius:9px;padding:12px;cursor:pointer;border:1.5px solid var(--principal)}
+  .btn.pri{background:var(--principal);color:#fff}
+  .btn.sec{background:#fff;color:var(--principal)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn:focus-visible,.chip:focus-visible,.tabs button:focus-visible,button.tarjeta:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #1a73e8;outline-offset:2px}
+  .btn.peq{font-size:14px;padding:8px;margin-top:8px}
+  .duo{display:flex;gap:8px}
+  form label{display:block;font-size:14px;font-weight:600;margin:12px 0 4px}
+  form input,form textarea{width:100%;font:inherit;font-size:16px;padding:10px;border:1.5px solid #999;border-radius:7px;background:#fff}
+  form textarea{min-height:70px;resize:vertical}
+  form input[aria-invalid="true"],form textarea[aria-invalid="true"]{border-color:var(--error)}
+  .err{color:var(--error);font-size:13px;margin-top:4px}
+  .ayuda{font-size:13px;color:var(--suave);margin-top:4px}
+  .vacio{text-align:center;color:var(--suave);padding:30px 10px}
+  .historial li{list-style:none;font-size:14px;padding:7px 0;border-bottom:1px solid #e3e3e3}
+  .historial time{display:block;font-size:12px;color:var(--suave)}
+  .pasos{display:flex;gap:4px;margin:6px 0 4px}
+  .pasos span{flex:1;text-align:center;font-size:12.5px;padding:4px 0;border-bottom:4px solid #ccc;color:#888}
+  .pasos span.hecho{border-color:var(--principal);color:var(--tinta);font-weight:600}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:150px;width:calc(100% - 28px);max-width:392px;background:#222;color:#fff;font-size:14.5px;border-radius:8px;padding:11px 12px;display:flex;justify-content:space-between;gap:10px;align-items:center;z-index:10}
+  .toast button{background:none;border:none;color:#fff;text-decoration:underline;font:inherit;cursor:pointer;white-space:nowrap}
+  .reset{display:block;margin:20px auto 0;background:none;border:none;color:var(--suave);text-decoration:underline;font-size:13px;cursor:pointer}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <span class="marca">TrabajoClaro</span>
+    <label class="sr" for="rol">Cambiar vista</label>
+    <select id="rol" aria-label="Vista simulada">
+      <option value="trabajador">Vista: Trabajador</option>
+      <option value="cliente">Vista: Cliente</option>
+    </select>
+  </header>
+  <p class="aviso">Simulación: ambas personas usan el mismo dispositivo.</p>
+  <main id="main"></main>
+  <div class="acciones" id="acciones"></div>
+  <div id="toast" aria-live="polite"></div>
+</div>
+
+<script>
+/* ================== Datos y persistencia ================== */
+const CLAVE = "trabajoclaro-v1";
+const hoy = () => new Date().toISOString().slice(0, 10);
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+function datosEjemplo() {
+  return [
+    { id: "t1", cliente: "Paula R.", titulo: "Reparación de cañería – cocina", alcance: "Cambio de sifón y llave de paso bajo el lavaplatos.",
+      monto: 80000, vence: "2026-11-30", acuerdo: "aceptado", avance: "en curso",
+      adicionales: [{ id: "a1", desc: "Reemplazo de flexible", motivo: "El flexible actual está dañado.", monto: 15000, estado: "pendiente" }],
+      pagos: [{ id: "p1", monto: 20000, fecha: "2026-11-12", nota: "Anticipo en efectivo" }],
+      historial: [
+        { fecha: "2026-11-10", texto: "Propuesta creada por $80.000." },
+        { fecha: "2026-11-12", texto: "Cliente aceptó el acuerdo." },
+        { fecha: "2026-11-12", texto: "Pago registrado: $20.000 (Anticipo en efectivo)." },
+        { fecha: "2026-11-13", texto: "Avance: En curso." },
+        { fecha: "2026-11-14", texto: "Adicional propuesto: Reemplazo de flexible (+$15.000)." }] },
+    { id: "t2", cliente: "Carla S.", titulo: "Instalación de lámpara – comedor", alcance: "Instalar lámpara colgante y revisar conexión existente.",
+      monto: 30000, vence: "2026-12-05", acuerdo: "pendiente", avance: "acordado", adicionales: [], pagos: [],
+      historial: [{ fecha: "2026-11-16", texto: "Propuesta creada por $30.000." }] },
+    { id: "t3", cliente: "Jorge M.", titulo: "Cambio de enchufes – living", alcance: "Cambio de 4 enchufes dobles.",
+      monto: 45000, vence: "2026-11-22", acuerdo: "aceptado", avance: "entregado", adicionales: [],
+      pagos: [{ id: "p2", monto: 20000, fecha: "2026-11-05", nota: "Transferencia" }],
+      historial: [
+        { fecha: "2026-11-03", texto: "Propuesta creada por $45.000." },
+        { fecha: "2026-11-03", texto: "Cliente aceptó el acuerdo." },
+        { fecha: "2026-11-05", texto: "Pago registrado: $20.000 (Transferencia)." },
+        { fecha: "2026-11-08", texto: "Avance: Entregado." }] },
+    { id: "t4", cliente: "Ana T.", titulo: "Pintura de reja", alcance: "Lijado y dos manos de esmalte en reja exterior.",
+      monto: 50000, vence: "2026-11-01", acuerdo: "aceptado", avance: "entregado", adicionales: [],
+      pagos: [{ id: "p3", monto: 50000, fecha: "2026-10-30", nota: "" }],
+      historial: [
+        { fecha: "2026-10-25", texto: "Propuesta creada por $50.000." },
+        { fecha: "2026-10-25", texto: "Cliente aceptó el acuerdo." },
+        { fecha: "2026-10-29", texto: "Avance: Entregado." },
+        { fecha: "2026-10-30", texto: "Pago registrado: $50.000." }] }
+  ];
+}
+
+function cargar() {
+  try { const d = JSON.parse(localStorage.getItem(CLAVE)); if (Array.isArray(d)) return d; } catch (e) {}
+  return datosEjemplo();
+}
+function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(trabajos)); } catch (e) {} }
+
+let trabajos = cargar();
+const estado = { rol: "trabajador", vista: "lista", id: null, pestana: "acuerdo", filtro: "todos" };
+let deshacer = null, temporizador = null;
+
+/* ================== Reglas de negocio ================== */
+const pesos = n => "$" + Number(n).toLocaleString("es-CL");
+const fechaCL = f => { const [a, m, d] = f.split("-"); return `${d}/${m}/${a}`; };
+const totalConfirmado = t => t.acuerdo === "aceptado"
+  ? t.monto + t.adicionales.filter(a => a.estado === "aceptado").reduce((s, a) => s + a.monto, 0) : 0;
+const pagado = t => t.pagos.reduce((s, p) => s + p.monto, 0);
+const saldo = t => totalConfirmado(t) - pagado(t);
+const requiereRespuesta = t => t.acuerdo === "pendiente" || t.adicionales.some(a => a.estado === "pendiente");
+const porCobrar = t => t.acuerdo === "aceptado" && saldo(t) > 0;
+const buscar = id => trabajos.find(t => t.id === id);
+const evento = (t, texto) => t.historial.push({ fecha: hoy(), texto });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function leerMonto(txt) {
+  const limpio = String(txt).replace(/[$.\s]/g, "");
+  if (!/^\d+$/.test(limpio)) return null;
+  const n = parseInt(limpio, 10);
+  return n > 0 ? n : null;
+}
+
+/* ================== Componentes ================== */
+function etiquetasDe(t) {
+  const e = [];
+  if (t.acuerdo === "pendiente") e.push(['pend', "Acuerdo pendiente"]);
+  else if (t.acuerdo === "rechazado") e.push(['no', "Acuerdo rechazado"]);
+  else {
+    const av = { "acordado": "Acordado", "en curso": "En curso", "entregado": "Entregado" }[t.avance];
+    e.push([t.avance === "entregado" ? "ok" : "", av]);
+    if (t.adicionales.some(a => a.estado === "pendiente")) e.push(["pend", "Adicional pendiente"]);
+    e.push(saldo(t) > 0 ? ["", "Saldo por cobrar"] : ["ok", "Sin saldo"]);
+  }
+  return `<div class="etiquetas">${e.map(([c, x]) => `<span class="et ${c}">${x}</span>`).join("")}</div>`;
+}
+
+function acciones(html) { document.getElementById("acciones").innerHTML = html; }
+
+function toast(msg, conDeshacer) {
+  clearTimeout(temporizador);
+  const el = document.getElementById("toast");
+  el.innerHTML = `<div class="toast" role="status"><span>${msg}</span>${conDeshacer ? '<button id="btn-deshacer">Deshacer</button>' : ""}</div>`;
+  if (conDeshacer) document.getElementById("btn-deshacer").onclick = () => { deshacer && deshacer(); };
+  temporizador = setTimeout(() => { el.innerHTML = ""; deshacer = null; }, 6000);
+}
+
+/* ================== Pantallas ================== */
+function render() {
+  const main = document.getElementById("main");
+  if (estado.vista === "lista") vistaLista(main);
+  else if (estado.vista === "nuevo") vistaNuevo(main);
+  else if (estado.vista === "pago") vistaPago(main);
+  else if (estado.vista === "adicional") vistaAdicional(main);
+  else vistaFicha(main);
+  window.scrollTo(0, 0);
+}
+
+function vistaLista(main) {
+  const cliente = estado.rol === "cliente";
+  let lista = trabajos;
+  if (estado.filtro === "respuesta") lista = lista.filter(requiereRespuesta);
+  if (estado.filtro === "cobrar") lista = lista.filter(porCobrar);
+  const nResp = trabajos.filter(requiereRespuesta).length;
+  main.innerHTML = `
+    <h1>${cliente ? "Mis encargos" : "Mis trabajos"}</h1>
+    ${cliente && nResp ? `<p class="sub" style="margin:-4px 0 10px">Tienes <b>${nResp}</b> solicitud(es) por responder.</p>` : ""}
+    <div class="filtros" role="group" aria-label="Filtrar trabajos">
+      <button class="chip" data-f="todos" aria-pressed="${estado.filtro === "todos"}">Todos</button>
+      <button class="chip" data-f="respuesta" aria-pressed="${estado.filtro === "respuesta"}">Requieren respuesta (${nResp})</button>
+      <button class="chip" data-f="cobrar" aria-pressed="${estado.filtro === "cobrar"}">${cliente ? "Por pagar" : "Por cobrar"}</button>
+    </div>
+    ${lista.length ? lista.map(t => `
+      <button class="tarjeta" data-id="${t.id}">
+        <div class="titulo">${esc(t.titulo)}</div>
+        <div class="sub">${cliente ? "Trabajador: Luis P." : "Cliente: " + esc(t.cliente)} · Vence pago: ${fechaCL(t.vence)}</div>
+        ${etiquetasDe(t)}
+        ${t.acuerdo === "aceptado" ? `<div class="fila" style="margin-top:6px"><span>Saldo</span><span class="monto">${pesos(saldo(t))}</span></div>` : ""}
+      </button>`).join("") : `<p class="vacio">No hay trabajos en este filtro.</p>`}
+    <button class="reset" id="reset">Restablecer datos de ejemplo</button>`;
+  main.querySelectorAll(".chip").forEach(b => b.onclick = () => { estado.filtro = b.dataset.f; render(); });
+  main.querySelectorAll("button.tarjeta").forEach(b => b.onclick = () => { estado.vista = "ficha"; estado.id = b.dataset.id; estado.pestana = "acuerdo"; render(); });
+  document.getElementById("reset").onclick = () => { trabajos = datosEjemplo(); guardar(); toast("Datos de ejemplo restablecidos."); render(); };
+  acciones(cliente ? "" : `<button class="btn pri" id="btn-nuevo">+ Nuevo trabajo</button>`);
+  if (!cliente) document.getElementById("btn-nuevo").onclick = () => { estado.vista = "nuevo"; render(); };
+}
+
+function vistaNuevo(main, base) {
+  main.innerHTML = `
+    <button class="volver" id="volver">✕ Cancelar</button>
+    <h1>${base ? "Nueva propuesta" : "Nuevo trabajo"}</h1>
+    <form id="form" novalidate>
+      <label for="f-cliente">Cliente</label>
+      <input id="f-cliente" value="${base ? esc(base.cliente) : ""}" autocomplete="off">
+      <label for="f-titulo">Título del trabajo</label>
+      <input id="f-titulo" value="${base ? esc(base.titulo) : ""}" placeholder="Ej.: Reparación de cañería">
+      <label for="f-alcance">Alcance (qué incluye)</label>
+      <textarea id="f-alcance">${base ? esc(base.alcance) : ""}</textarea>
+      <label for="f-monto">Monto total</label>
+      <input id="f-monto" inputmode="numeric" placeholder="Ej.: 80000">
+      <p class="ayuda">Número entero, sin decimales.</p>
+      <label for="f-vence">Vencimiento del pago</label>
+      <input id="f-vence" type="date">
+    </form>`;
+  document.getElementById("volver").onclick = () => { estado.vista = base ? "ficha" : "lista"; render(); };
+  acciones(`<button class="btn pri" id="btn-guardar">Enviar propuesta al cliente</button>`);
+  document.getElementById("btn-guardar").onclick = () => {
+    const v = id => document.getElementById(id).value.trim();
+    const errores = {};
+    if (!v("f-cliente")) errores["f-cliente"] = "Ingresa el nombre del cliente.";
+    if (!v("f-titulo")) errores["f-titulo"] = "Ingresa un título.";
+    if (!v("f-alcance")) errores["f-alcance"] = "Describe qué incluye el trabajo.";
+    const monto = leerMonto(v("f-monto"));
+    if (!monto) errores["f-monto"] = "Ingresa un monto entero mayor que cero.";
+    if (!v("f-vence")) errores["f-vence"] = "Indica la fecha de vencimiento del pago.";
+    if (mostrarErrores(errores)) return;
+    const t = { id: uid(), cliente: v("f-cliente"), titulo: v("f-titulo"), alcance: v("f-alcance"), monto, vence: v("f-vence"),
+      acuerdo: "pendiente", avance: "acordado", adicionales: [], pagos: [], historial: [] };
+    evento(t, `Propuesta creada por ${pesos(monto)}.`);
+    trabajos.unshift(t); guardar();
+    estado.vista = "ficha"; estado.id = t.id; estado.pestana = "acuerdo";
+    toast("Propuesta enviada. Queda pendiente hasta que el cliente responda.");
+    render();
+  };
+}
+
+function mostrarErrores(errores) {
+  document.querySelectorAll(".err").forEach(e => e.remove());
+  document.querySelectorAll("[aria-invalid]").forEach(e => e.removeAttribute("aria-invalid"));
+  const ids = Object.keys(errores);
+  ids.forEach(id => {
+    const campo = document.getElementById(id);
+    campo.setAttribute("aria-invalid", "true");
+    campo.setAttribute("aria-describedby", id + "-err");
+    campo.insertAdjacentHTML("afterend", `<p class="err" id="${id}-err">⚠ ${errores[id]}</p>`);
+  });
+  if (ids.length) document.getElementById(ids[0]).focus();
+  return ids.length > 0;
+}
+
+function vistaFicha(main) {
+  const t = buscar(estado.id);
+  if (!t) { estado.vista = "lista"; return render(); }
+  const cliente = estado.rol === "cliente";
+  const pestanas = [["acuerdo", "Acuerdo"], ["adicionales", "Adicionales"], ["avance", "Avance"], ["pagos", "Pagos"], ["historial", "Historial"]];
+  const nPend = t.adicionales.filter(a => a.estado === "pendiente").length;
+  main.innerHTML = `
+    <button class="volver" id="volver">← ${cliente ? "Mis encargos" : "Mis trabajos"}</button>
+    <h2>${esc(t.titulo)}</h2>
+    <p class="sub" style="margin:-4px 0 8px">${cliente ? "Trabajador: Luis P." : "Cliente: " + esc(t.cliente)}</p>
+    ${t.acuerdo === "aceptado" ? `
+      <div class="tarjeta saldo">
+        <div class="lbl">${cliente ? "Saldo por pagar" : "Saldo por cobrar"}</div>
+        <div class="cifra">${pesos(saldo(t))}</div>
+        <div class="sub">Total confirmado ${pesos(totalConfirmado(t))} − pagos ${pesos(pagado(t))}</div>
+      </div>` : ""}
+    <div class="tabs" role="tablist">
+      ${pestanas.map(([k, n]) => `<button role="tab" data-p="${k}" aria-selected="${estado.pestana === k}">${n}${k === "adicionales" && nPend ? " •" : ""}</button>`).join("")}
+    </div>
+    <section id="panel">${panel(t, cliente)}</section>`;
+  document.getElementById("volver").onclick = () => { estado.vista = "lista"; render(); };
+  main.querySelectorAll("[role=tab]").forEach(b => b.onclick = () => { estado.pestana = b.dataset.p; render(); });
+  conectarPanel(t, cliente);
+  accionesFicha(t, cliente);
+}
+
+function panel(t, cliente) {
+  switch (estado.pestana) {
+    case "acuerdo": {
+      const et = { pendiente: ['pend', "Esperando respuesta del cliente"], aceptado: ["ok", "✓ Aceptado por el cliente"], rechazado: ["no", "✕ Rechazado por el cliente"] }[t.acuerdo];
+      return `<div class="tarjeta ${t.acuerdo === "pendiente" ? "pendiente" : ""}">
+        <div class="lbl">Acuerdo base</div>
+        <div class="fila"><span>${esc(t.alcance)}</span><span class="monto">${pesos(t.monto)}</span></div>
+        <div class="fila"><span>Vencimiento del pago</span><span>${fechaCL(t.vence)}</span></div>
+        <div class="etiquetas"><span class="et ${et[0]}">${et[1]}</span></div>
+        ${t.acuerdo === "pendiente" && cliente ? `<p class="sub" style="margin-top:8px">Si aceptas, el saldo por pagar será ${pesos(t.monto)}.</p>
+          <div class="duo"><button class="btn pri peq" data-acc="aceptar-acuerdo">Aceptar</button><button class="btn sec peq" data-acc="rechazar-acuerdo">Rechazar</button></div>` : ""}
+        ${t.acuerdo === "rechazado" ? `<p class="sub" style="margin-top:8px">No se habilitan avances ni pagos para este acuerdo.</p>` : ""}
+      </div>`;
+    }
+    case "adicionales":
+      if (!t.adicionales.length) return `<p class="vacio">No hay adicionales propuestos.</p>`;
+      return t.adicionales.map(a => {
+        const et = { pendiente: ['pend', "Esperando respuesta"], aceptado: ["ok", "✓ Aceptado"], rechazado: ["no", "✕ Rechazado"] }[a.estado];
+        const total = totalConfirmado(t), pag = pagado(t);
+        return `<div class="tarjeta ${a.estado === "pendiente" ? "pendiente" : ""}">
+          <div class="lbl">Adicional</div>
+          <div class="fila"><span><b>${esc(a.desc)}</b>${a.motivo ? `<br><span class="sub">Motivo: ${esc(a.motivo)}</span>` : ""}</span><span class="monto">+${pesos(a.monto)}</span></div>
+          <div class="etiquetas"><span class="et ${et[0]}">${et[1]}</span></div>
+          ${a.estado === "pendiente" ? (cliente ? `
+            <div class="fila" style="margin-top:6px"><span>Saldo si aceptas</span><span class="monto">${pesos(total + a.monto - pag)}</span></div>
+            <div class="fila"><span>Saldo si rechazas</span><span class="monto">${pesos(total - pag)}</span></div>
+            <div class="duo"><button class="btn pri peq" data-acc="aceptar-ad" data-ad="${a.id}">Aceptar adicional</button><button class="btn sec peq" data-acc="rechazar-ad" data-ad="${a.id}">Rechazar</button></div>`
+            : `<p class="sub" style="margin-top:6px">No suma al total hasta que el cliente acepte.</p>`) : ""}
+        </div>`;
+      }).join("");
+    case "avance": {
+      if (t.acuerdo !== "aceptado") return `<p class="vacio">El avance se habilita cuando el cliente acepta el acuerdo.</p>`;
+      const orden = ["acordado", "en curso", "entregado"], i = orden.indexOf(t.avance);
+      const sig = { "acordado": ["en curso", "Marcar en curso"], "en curso": ["entregado", "Marcar entregado"] }[t.avance];
+      return `<div class="tarjeta">
+        <div class="lbl">Estado del trabajo</div>
+        <div class="pasos">${["Acordado", "En curso", "Entregado"].map((n, k) => `<span class="${k <= i ? "hecho" : ""}">${n}</span>`).join("")}</div>
+        <p class="sub">El avance es independiente del pago: un trabajo entregado puede seguir con saldo pendiente.</p>
+        ${sig && !cliente ? `<button class="btn sec peq" data-acc="avance" data-sig="${sig[0]}">${sig[1]}</button>` : ""}
+      </div>`;
+    }
+    case "pagos":
+      if (t.acuerdo !== "aceptado") return `<p class="vacio">Los pagos se habilitan cuando el cliente acepta el acuerdo.</p>`;
+      return `<div class="tarjeta">
+        <div class="lbl">Pagos registrados</div>
+        ${t.pagos.length ? t.pagos.map(p => `<div class="fila"><span>${fechaCL(p.fecha)}${p.nota ? " · " + esc(p.nota) : ""}</span><span class="monto">${pesos(p.monto)}</span></div>`).join("") : `<p class="sub">Aún no hay pagos registrados.</p>`}
+        <p class="sub" style="margin-top:8px">Un pago registrado declara que se recibió dinero; no es un comprobante bancario.</p>
+      </div>`;
+    case "historial":
+      return `<ul class="historial">${[...t.historial].reverse().map(h => `<li><time>${fechaCL(h.fecha)}</time>${esc(h.texto)}</li>`).join("")}</ul>`;
+  }
+}
+
+function conectarPanel(t, cliente) {
+  document.querySelectorAll("#panel [data-acc]").forEach(b => b.onclick = () => {
+    const acc = b.dataset.acc;
+    if (acc === "aceptar-acuerdo") { t.acuerdo = "aceptado"; evento(t, "Cliente aceptó el acuerdo."); toast("Acuerdo aceptado. Saldo por pagar: " + pesos(saldo(t)) + "."); }
+    if (acc === "rechazar-acuerdo") { t.acuerdo = "rechazado"; evento(t, "Cliente rechazó el acuerdo."); toast("Acuerdo rechazado."); }
+    if (acc === "aceptar-ad" || acc === "rechazar-ad") {
+      const a = t.adicionales.find(x => x.id === b.dataset.ad);
+      a.estado = acc === "aceptar-ad" ? "aceptado" : "rechazado";
+      evento(t, `Cliente ${a.estado === "aceptado" ? "aceptó" : "rechazó"} el adicional: ${a.desc} (${pesos(a.monto)}).`);
+      toast(a.estado === "aceptado" ? `Adicional aceptado. Nuevo saldo: ${pesos(saldo(t))}.` : `Adicional rechazado. El saldo se mantiene en ${pesos(saldo(t))}.`);
+    }
+    if (acc === "avance") {
+      t.avance = b.dataset.sig;
+      evento(t, "Avance: " + (t.avance === "en curso" ? "En curso." : "Entregado."));
+      toast(t.avance === "entregado" && saldo(t) > 0 ? `Trabajo entregado. Aún queda saldo por cobrar: ${pesos(saldo(t))}.` : "Avance actualizado.");
+    }
+    guardar(); render();
+  });
+}
+
+function accionesFicha(t, cliente) {
+  if (cliente) {
+    const pend = t.acuerdo === "pendiente" || t.adicionales.some(a => a.estado === "pendiente");
+    acciones(pend && !["acuerdo", "adicionales"].includes(estado.pestana)
+      ? `<button class="btn pri" id="ir-resp">Ver solicitud por responder</button>` : "");
+    const b = document.getElementById("ir-resp");
+    if (b) b.onclick = () => { estado.pestana = t.acuerdo === "pendiente" ? "acuerdo" : "adicionales"; render(); };
+    return;
+  }
+  if (t.acuerdo === "rechazado") {
+    acciones(`<button class="btn pri" id="nueva-prop">Crear nueva propuesta</button>`);
+    document.getElementById("nueva-prop").onclick = () => { estado.vista = "nuevo"; vistaNuevo(document.getElementById("main"), t); };
+    return;
+  }
+  if (t.acuerdo === "pendiente") { acciones(""); return; }
+  acciones(`
+    <button class="btn pri" id="btn-pago" ${saldo(t) <= 0 ? "disabled" : ""}>${saldo(t) <= 0 ? "Sin saldo por cobrar" : "Registrar pago"}</button>
+    ${t.avance !== "entregado" ? `<button class="btn sec" id="btn-ad">Proponer adicional</button>` : ""}`);
+  const bp = document.getElementById("btn-pago"), ba = document.getElementById("btn-ad");
+  if (bp) bp.onclick = () => { estado.vista = "pago"; render(); };
+  if (ba) ba.onclick = () => { estado.vista = "adicional"; render(); };
+}
+
+function vistaPago(main) {
+  const t = buscar(estado.id), s = saldo(t);
+  main.innerHTML = `
+    <button class="volver" id="volver">✕ Cancelar</button>
+    <h1>Registrar pago</h1>
+    <p class="sub">${esc(t.titulo)} · Saldo actual <b>${pesos(s)}</b></p>
+    <form id="form" novalidate>
+      <label for="p-monto">Monto recibido</label>
+      <input id="p-monto" inputmode="numeric" placeholder="Ej.: 20000">
+      <label for="p-fecha">Fecha</label>
+      <input id="p-fecha" type="date" value="${hoy()}">
+      <label for="p-nota">Nota (opcional)</label>
+      <input id="p-nota" placeholder="Ej.: Transferencia">
+      <p class="ayuda">Este registro declara que recibiste el dinero; no es un comprobante bancario.</p>
+    </form>`;
+  document.getElementById("volver").onclick = () => { estado.vista = "ficha"; render(); };
+  acciones(`<button class="btn pri" id="btn-guardar">Guardar pago</button>`);
+  document.getElementById("btn-guardar").onclick = () => {
+    const txt = document.getElementById("p-monto").value.trim(), fecha = document.getElementById("p-fecha").value;
+    const monto = leerMonto(txt), errores = {};
+    if (!monto) errores["p-monto"] = "Ingresa un monto entero mayor que cero.";
+    else if (monto > s) errores["p-monto"] = `El monto supera el saldo (${pesos(s)}). Revisa la cifra.`;
+    if (!fecha) errores["p-fecha"] = "Indica la fecha del pago.";
+    if (mostrarErrores(errores)) return;
+    const nota = document.getElementById("p-nota").value.trim();
+    const p = { id: uid(), monto, fecha, nota };
+    t.pagos.push(p);
+    evento(t, `Pago registrado: ${pesos(monto)}${nota ? " (" + nota + ")" : ""}.`);
+    guardar();
+    deshacer = () => {
+      t.pagos = t.pagos.filter(x => x.id !== p.id);
+      t.historial.pop();
+      guardar(); deshacer = null; toast("Pago deshecho. Saldo: " + pesos(saldo(t)) + "."); render();
+    };
+    estado.vista = "ficha"; estado.pestana = "pagos";
+    render();
+    toast(`✓ Pago de ${pesos(monto)} registrado. Nuevo saldo: ${pesos(saldo(t))}.`, true);
+  };
+}
+
+function vistaAdicional(main) {
+  const t = buscar(estado.id);
+  main.innerHTML = `
+    <button class="volver" id="volver">✕ Cancelar</button>
+    <h1>Proponer adicional</h1>
+    <p class="sub">${esc(t.titulo)}</p>
+    <form id="form" novalidate>
+      <label for="a-desc">¿Qué trabajo adicional se necesita?</label>
+      <input id="a-desc" placeholder="Ej.: Reemplazo de flexible">
+      <label for="a-motivo">Motivo (opcional)</label>
+      <input id="a-motivo" placeholder="Ej.: El flexible actual está dañado">
+      <label for="a-monto">Costo adicional</label>
+      <input id="a-monto" inputmode="numeric" placeholder="Ej.: 15000">
+      <p class="ayuda">El costo quedará pendiente y no sumará al total hasta que el cliente lo acepte.</p>
+    </form>`;
+  document.getElementById("volver").onclick = () => { estado.vista = "ficha"; render(); };
+  acciones(`<button class="btn pri" id="btn-guardar">Enviar al cliente</button>`);
+  document.getElementById("btn-guardar").onclick = () => {
+    const desc = document.getElementById("a-desc").value.trim();
+    const monto = leerMonto(document.getElementById("a-monto").value), errores = {};
+    if (!desc) errores["a-desc"] = "Describe el trabajo adicional.";
+    if (!monto) errores["a-monto"] = "Ingresa un monto entero mayor que cero.";
+    if (mostrarErrores(errores)) return;
+    const a = { id: uid(), desc, motivo: document.getElementById("a-motivo").value.trim(), monto, estado: "pendiente" };
+    t.adicionales.push(a);
+    evento(t, `Adicional propuesto: ${desc} (+${pesos(monto)}).`);
+    guardar();
+    estado.vista = "ficha"; estado.pestana = "adicionales";
+    render();
+    toast(`Adicional enviado. El saldo se mantiene en ${pesos(saldo(t))} hasta que el cliente responda.`);
+  };
+}
+
+/* ================== Inicio ================== */
+document.getElementById("rol").onchange = e => {
+  estado.rol = e.target.value;
+  if (["nuevo", "pago", "adicional"].includes(estado.vista)) estado.vista = estado.id ? "ficha" : "lista";
+  toast(estado.rol === "cliente" ? "Ahora ves la aplicación como el cliente." : "Ahora ves la aplicación como el trabajador.");
+  render();
+};
+render();
+</script>
+</body>
+</html>
