@@ -6,7 +6,7 @@ Trabajo grupal – Interacción Humano Computador, Unidad 2: "Modelos conceptual
 Integrantes: Martina Alarcón y Nancy González
 
 # Prototipo
-Prototipo navegable: https://nancygonzalezp.github.io/trabajoclaro/prototipo/
+Prototipo navegable: <a>https://trabajoclaro-git-main-npgp.vercel.app/</a>
 Código: prototipo/index.html, un solo archivo con HTML, CSS y JavaScript, sin dependencias.
 
 Para probarlo sin internet, descarga prototipo/index.html y ábrelo con doble clic en el navegador.
